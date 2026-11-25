@@ -66,7 +66,7 @@ In this repo: **Settings → Secrets and variables → Actions**
 
 ```bash
 # 1. Get the code
-git clone https://github.com/digitalwitchdemo/ecommerce-final-project.git
+git clone https://github.com/stancloud9/ecommerce-application-project-dw.git
 cd ecommerce-final-project
 
 # 2. Change something, e.g. a page in src/frontend/
