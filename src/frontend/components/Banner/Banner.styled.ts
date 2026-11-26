@@ -17,7 +17,7 @@ export const Banner = styled.div`
 
 export const BannerImg = styled.img.attrs({
   src: '/images/digitalwitch-banner.webp',
-  alt: 'Welcome to DigitalWitch',
+  alt: 'Welcome to Stanley Unue Store',
 })`
   width: 100%;
   height: auto;

@@ -44,7 +44,7 @@ export const NavBarBrand = styled(Link)`
 
 export const BrandImg = styled.img.attrs({
   src: '/images/digitalwitch-logo.svg',
-  alt: 'DigitalWitch',
+  alt: 'Stanley Unue Store',
 })`
   width: 280px;
   height: auto;
