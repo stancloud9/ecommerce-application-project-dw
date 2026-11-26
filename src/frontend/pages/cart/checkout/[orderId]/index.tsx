@@ -45,7 +45,7 @@ const Checkout: NextPage = () => {
       contextKeys={[...new Set(items.flatMap(({ item }) => item.product.categories))]}
     >
       <Head>
-        <title>DigitalWitch - Checkout</title>
+        <title>Stanley Unue Store - Checkout</title>
       </Head>
       <Layout>
         <S.Checkout>

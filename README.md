@@ -2,7 +2,7 @@
 
 An online telescope shop made of **24 microservices** in 10+ languages. This
 repo holds the **application code**. Every push builds Docker images, pushes
-them to **Amazon ECR**, and updates the **[k8s-file](https://github.com/digitalwitchdemo/k8s-file)**
+them to **Amazon ECR**, and updates the **[k8s-file](https://github.com/dstancloud9/ecommerce-k8s-files-dw)**
 repo, which **Argo CD** deploys to the EKS cluster automatically.
 
 ```
@@ -84,7 +84,7 @@ Then follow it:
 | Images in ECR | AWS Console → **ECR** → `ecomerce/<service>`; the newest tag = the run number (`#N`) |
 | Tag updated | `k8s-file` repo → new commit **"Deploy images from build #N"** |
 | Deployed | Argo CD UI → app **astronomy-shop** = `Synced` / `Healthy` |
-| Live | https://shop.digitalwitch.online |
+| Live | https://shop.stanleyunue.online |
 
 **Rebuild without a code change:** Actions → *Build and Push Images to ECR* → **Run workflow**.
 
@@ -109,7 +109,7 @@ docker build -f android.Dockerfile --platform=linux/amd64 --output=. .
 ```
 
 Install `reactnativeapp.apk` on a phone or emulator. In the app's **Settings**
-tab, set the server to `https://shop.digitalwitch.online`.
+tab, set the server to `https://shop.stanleyunue.online`.
 
 ## License
 

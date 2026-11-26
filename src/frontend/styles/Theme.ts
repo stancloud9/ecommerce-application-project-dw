@@ -5,7 +5,7 @@ import { DefaultTheme } from 'styled-components';
 
 const Theme: DefaultTheme = {
   colors: {
-    // DigitalWitch brand (key names kept from the upstream demo)
+    // Stanley Unue Store (key names kept from the upstream demo)
     otelBlue: '#1F6FD1', // brand blue: buttons, links
 
     otelYellow: '#C8902E', // brand gold: accents

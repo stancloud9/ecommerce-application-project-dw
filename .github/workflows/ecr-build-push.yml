@@ -104,7 +104,7 @@ jobs:
   #   steps:
   #     - uses: actions/checkout@v7
   #       with:
-  #         repository: digitalwitchdemo/k8s-file
+  #         repository: stancloud9/ecommerce-k8s-files-dw
   #         token: ${{ secrets.K8S_REPO_TOKEN }}
 
   #     - name: Set the new image tag and push
