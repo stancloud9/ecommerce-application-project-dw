@@ -6,7 +6,6 @@ on:
     paths:
       - 'src/**'
       - 'pb/**'
-      - '.github/workflows/ecr-build-push.yml'
   workflow_dispatch: {}
 
 permissions:
@@ -100,38 +99,95 @@ jobs:
             ${{ steps.ecr.outputs.registry }}/${{ env.IMAGE }}:${{ github.run_number }}
             ${{ steps.ecr.outputs.registry }}/${{ env.IMAGE }}:latest
 
-  # Enable this job after creating the K8S_REPO_TOKEN secret.
-  # It updates the Kubernetes repository so Argo CD can deploy the new images.
-  #
-  # update-k8s-manifests:
-  #   needs: [services, build-and-push]
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout Kubernetes manifests
-  #       uses: actions/checkout@v7
-  #       with:
-  #         repository: stancloud9/ecommerce-k8s-files-dw
-  #         ref: main
-  #         token: ${{ secrets.K8S_REPO_TOKEN }}
-  #         path: k8s-manifests
-  #
-  #     - name: Update image tags
-  #       working-directory: k8s-manifests
-  #       env:
-  #         SERVICES: ${{ join(fromJSON(needs.services.outputs.list), ' ') }}
-  #         TAG: ${{ github.run_number }}
-  #       run: |
-  #         for file in $(find . -name kustomization.yaml); do
-  #           for svc in $SERVICES; do
-  #             sed -i -E "/name: .*\/ecommerce\/${svc}\$/,/newTag:/{s/(newTag: ).*/\1\"${TAG}\"/;}" "$file"
-  #           done
-  #         done
-  #
-  #     - name: Commit and push updated manifests
-  #       working-directory: k8s-manifests
-  #       run: |
-  #         git config user.name "github-actions[bot]"
-  #         git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-  #         git add .
-  #         git commit -m "Deploy application images from build #${GITHUB_RUN_NUMBER}" || exit 0
-  #         git push origin main
+
+  update-k8s-manifests:
+    name: Update Kubernetes image tags
+    needs: [services, build-and-push]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Kubernetes manifests
+        uses: actions/checkout@v7
+        with:
+          repository: stancloud9/ecommerce-k8s-files-dw
+          ref: main
+          token: ${{ secrets.K8S_REPO_TOKEN }}
+          path: k8s-manifests
+
+      - name: Update all 24 application image tags
+        working-directory: k8s-manifests
+        env:
+          TAG: ${{ github.run_number }}
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          import os
+
+          tag = os.environ["TAG"]
+          files = [
+              Path("10-ecommerce-data/kustomization.yaml"),
+              Path("20-logging/kustomization.yaml"),
+              Path("30-observability/kustomization.yaml"),
+              Path("40-ecommerce-app/kustomization.yaml"),
+              Path("50-ai-assistant/kustomization.yaml"),
+          ]
+
+          pattern = re.compile(
+              r'(?m)^([ \t]*-[ \t]+name:[ \t]+'
+              r'910965283770\.dkr\.ecr\.us-east-2\.amazonaws\.com/ecommerce/[^\s]+'
+              r'\r?\n[ \t]+newTag:[ \t]*)"?([^"\r\n]+)"?'
+          )
+
+          total = 0
+
+          for file in files:
+              if not file.is_file():
+                  raise SystemExit(f"Missing Kustomize file: {file}")
+
+              content = file.read_text()
+              updated, count = pattern.subn(
+                  lambda match: f'{match.group(1)}"{tag}"',
+                  content
+              )
+
+              file.write_text(updated)
+              total += count
+              print(f"{file}: updated {count} image tags")
+
+          if total != 24:
+              raise SystemExit(
+                  f"Expected exactly 24 image mappings, found {total}. "
+                  "Stopping without committing."
+              )
+
+          print(f"Successfully updated all {total} image tags to {tag}.")
+          PY
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'v1.31.0'
+
+      - name: Validate Kubernetes manifests
+        working-directory: k8s-manifests
+        run: |
+          kubectl kustomize 40-ecommerce-app >/dev/null
+          kubectl kustomize 10-ecommerce-data >/dev/null
+          kubectl kustomize 20-logging >/dev/null
+          kubectl kustomize 30-observability >/dev/null
+          kubectl kustomize 50-ai-assistant >/dev/null
+
+      - name: Commit and push updated manifests
+        working-directory: k8s-manifests
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add 10-ecommerce-data/kustomization.yaml \
+                  20-logging/kustomization.yaml \
+                  30-observability/kustomization.yaml \
+                  40-ecommerce-app/kustomization.yaml \
+                  50-ai-assistant/kustomization.yaml
+
+          git commit -m "Deploy application images from build #${GITHUB_RUN_NUMBER}"
+          git push origin main
