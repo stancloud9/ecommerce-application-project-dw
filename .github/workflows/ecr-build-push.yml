@@ -49,6 +49,16 @@ jobs:
       - name: Checkout application repository
         uses: actions/checkout@v7
 
+      - name: Download Tailwind Linux binary for flagd-ui
+        if: matrix.service == 'flagd-ui'
+        run: |
+          curl --fail --location --retry 3 \
+            --output tailwindcss-linux-x64 \
+            https://github.com/tailwindlabs/tailwindcss/releases/download/v4.0.9/tailwindcss-linux-x64
+          chmod +x tailwindcss-linux-x64
+          test -s tailwindcss-linux-x64
+
+
       - name: Authenticate to AWS using GitHub OIDC
         uses: aws-actions/configure-aws-credentials@v6
         with:
